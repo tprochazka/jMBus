@@ -7,6 +7,7 @@ target
 .idea
 *.iml
 build
+out
 
 #Other
 .DS_Store
