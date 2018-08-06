@@ -5,19 +5,14 @@
  */
 package org.openmuc.jmbus;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.text.MessageFormat;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
-import javax.xml.bind.DatatypeConverter;
 
 /**
  * Representation of the data transmitted in RESP-UD (M-Bus) and SND-NR (wM-Bus) messages.
@@ -137,8 +132,7 @@ public class VariableDataStructure {
     }
 
     private void decryptAesCbcIv(byte[] buffer, int offset, int encryptedDataLength) throws DecodingException {
-        final int len = length - 5;
-        vdr = new byte[len];
+        vdr = new byte[encryptedDataLength];
         System.arraycopy(buffer, offset, vdr, 0, encryptedDataLength);
 
         byte[] key = keyMap.get(linkLayerSecondaryAddress);
@@ -149,7 +143,7 @@ public class VariableDataStructure {
             throw new DecodingException(msg);
         }
 
-        decodeDataRecords(decryptMessage(key), 0, len);
+        decodeDataRecords(decryptMessage(key), 0, encryptedDataLength);
     }
 
     private void decodeLongHeaderData() throws DecodingException {
