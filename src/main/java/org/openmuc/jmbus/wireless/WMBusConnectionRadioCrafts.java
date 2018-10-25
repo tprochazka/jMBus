@@ -125,7 +125,7 @@ class WMBusConnectionRadioCrafts extends AbstractWMBusConnection {
 
             final int signalStrengthInDBm = (rssi * -1) / 2;
             try {
-                super.notifyNewMessage(WMBusMessage.decode(messageBytes, signalStrengthInDBm, keyMap));
+                super.notifyNewMessage(WMBusMessage.decode(messageBytes, signalStrengthInDBm, keyProvider));
             } catch (DecodingException e) {
                 super.notifyDiscarded(messageBytes);
             }

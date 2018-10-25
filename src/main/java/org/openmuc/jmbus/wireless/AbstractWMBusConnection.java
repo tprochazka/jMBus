@@ -5,17 +5,18 @@
  */
 package org.openmuc.jmbus.wireless;
 
+import org.openmuc.jmbus.SecondaryAddress;
+import org.openmuc.jmbus.key.DefaultHashMapDecodingKeyProvider;
+import org.openmuc.jmbus.key.IDecodingKeyProvider;
+import org.openmuc.jmbus.transportlayer.TransportLayer;
+
+import javax.annotation.Nonnull;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import org.openmuc.jmbus.SecondaryAddress;
-import org.openmuc.jmbus.transportlayer.TransportLayer;
 
 abstract class AbstractWMBusConnection implements WMBusConnection {
 
@@ -29,7 +30,7 @@ abstract class AbstractWMBusConnection implements WMBusConnection {
     private final WMBusMode mode;
     private final WMBusListener listener;
 
-    final Map<SecondaryAddress, byte[]> keyMap = new HashMap<>();
+    IDecodingKeyProvider keyProvider = new DefaultHashMapDecodingKeyProvider();
 
     private volatile boolean closed;
     private final ExecutorService receiverService;
@@ -59,14 +60,26 @@ abstract class AbstractWMBusConnection implements WMBusConnection {
         }
     }
 
-    @Override
-    public final void addKey(SecondaryAddress address, byte[] key) {
-        this.keyMap.put(address, key);
+    public final void setCustomDecryptionKeyProvider(@Nonnull IDecodingKeyProvider keyProvider) {
+        this.keyProvider = keyProvider;
     }
 
     @Override
-    public final void removeKey(SecondaryAddress address) {
-        this.keyMap.remove(address);
+    public final void addKey(@Nonnull SecondaryAddress address, byte[] key) {
+        if (keyProvider instanceof DefaultHashMapDecodingKeyProvider) {
+            ((DefaultHashMapDecodingKeyProvider)keyProvider).add(address, key);
+        } else {
+            throw new IllegalStateException("addKey() method can be used only with default implementation of key provider.");
+        }
+    }
+
+    @Override
+    public final void removeKey(@Nonnull SecondaryAddress address) {
+        if (keyProvider instanceof DefaultHashMapDecodingKeyProvider) {
+            ((DefaultHashMapDecodingKeyProvider)keyProvider).remove(address);
+        } else {
+            throw new IllegalStateException("removeKey() method can be used only with default implementation of key provider.");
+        }
     }
 
     public final void open() throws IOException {

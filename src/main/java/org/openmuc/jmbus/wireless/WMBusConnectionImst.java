@@ -5,17 +5,16 @@
  */
 package org.openmuc.jmbus.wireless;
 
+import org.openmuc.jmbus.DecodingException;
+import org.openmuc.jmbus.transportlayer.TransportLayer;
+
+import javax.xml.bind.DatatypeConverter;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.ByteBuffer;
 import java.text.MessageFormat;
 import java.util.Arrays;
-
-import javax.xml.bind.DatatypeConverter;
-
-import org.openmuc.jmbus.DecodingException;
-import org.openmuc.jmbus.transportlayer.TransportLayer;
 
 /**
  * Was tested with the IMST iM871A-USB Wireless M-Bus stick.<br>
@@ -64,7 +63,7 @@ class WMBusConnectionImst extends AbstractWMBusConnection {
             final byte[] wmbusMessage = hciMessage.getPayload();
             final int signalStrengthInDBm = hciMessage.getRSSI();
             try {
-                super.notifyNewMessage(WMBusMessage.decode(wmbusMessage, signalStrengthInDBm, keyMap));
+                super.notifyNewMessage(WMBusMessage.decode(wmbusMessage, signalStrengthInDBm, keyProvider));
             } catch (DecodingException e) {
                 super.notifyDiscarded(wmbusMessage);
             }

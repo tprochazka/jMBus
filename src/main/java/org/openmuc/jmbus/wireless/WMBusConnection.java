@@ -5,16 +5,17 @@
  */
 package org.openmuc.jmbus.wireless;
 
-import java.io.IOException;
-import java.text.MessageFormat;
-
 import org.openmuc.jmbus.SecondaryAddress;
+import org.openmuc.jmbus.key.IDecodingKeyProvider;
 import org.openmuc.jmbus.transportlayer.SerialBuilder;
 import org.openmuc.jmbus.transportlayer.TcpBuilder;
 import org.openmuc.jmbus.transportlayer.TransportLayer;
 import org.openmuc.jrxtx.DataBits;
 import org.openmuc.jrxtx.Parity;
 import org.openmuc.jrxtx.StopBits;
+
+import java.io.IOException;
+import java.text.MessageFormat;
 
 /**
  * A Wireless Mbus Connection.
@@ -87,6 +88,17 @@ public interface WMBusConnection extends AutoCloseable {
             return self();
         }
 
+        /**
+         * Allows to override default hashmap based implementation by own provider.
+         *
+         * @param keyProvider custom implementation of {@link IDecodingKeyProvider}
+         * @return builder instance
+         */
+        public WMBusSerialBuilder setCustomDecryptionKeyProvider(IDecodingKeyProvider keyProvider) {
+            builder.keyProvider = keyProvider;
+            return self();
+        }
+
         public WMBusSerialBuilder setListener(WMBusListener connectionListener) {
             builder.listener = connectionListener;
             return self();
@@ -135,6 +147,7 @@ public interface WMBusConnection extends AutoCloseable {
 
         private WMBusManufacturer wmBusManufacturer;
         private WMBusMode mode;
+        private IDecodingKeyProvider keyProvider;
         private WMBusListener listener;
 
         Builder(WMBusManufacturer wmBusManufacturer, WMBusListener listener) {
@@ -160,6 +173,9 @@ public interface WMBusConnection extends AutoCloseable {
                 throw new RuntimeException("Unknown Manufacturer.");
             }
 
+            if (keyProvider != null) {
+                wmBusConnection.setCustomDecryptionKeyProvider(keyProvider);
+            }
             wmBusConnection.open();
             return wmBusConnection;
         }

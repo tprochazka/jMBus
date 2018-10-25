@@ -61,6 +61,7 @@ class WMBusConnectionAmber extends AbstractWMBusConnection {
 
             int b0, b1;
             DataInputStream is = getInputStream();
+
             while (true) {
                 try {
                     this.transportLayer.setTimeout(0);
@@ -144,7 +145,7 @@ class WMBusConnectionAmber extends AbstractWMBusConnection {
             data[0] = (byte) (data[0] - 1);
 
             try {
-                super.notifyNewMessage(WMBusMessage.decode(data, signalStrengthInDBm, keyMap));
+                super.notifyNewMessage(WMBusMessage.decode(data, signalStrengthInDBm, keyProvider));
             } catch (DecodingException e) {
                 super.notifyDiscarded(data);
             }

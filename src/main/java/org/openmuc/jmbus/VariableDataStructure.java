@@ -5,6 +5,8 @@
  */
 package org.openmuc.jmbus;
 
+import org.openmuc.jmbus.key.IDecodingKeyProvider;
+
 import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -28,7 +30,7 @@ public class VariableDataStructure {
     private final int length;
     private byte[] header = new byte[0];
     private final SecondaryAddress linkLayerSecondaryAddress;
-    private final Map<SecondaryAddress, byte[]> keyMap;
+    private final IDecodingKeyProvider keyProvider;
 
     private SecondaryAddress secondaryAddress;
     private int accessNumber;
@@ -50,19 +52,19 @@ public class VariableDataStructure {
     private List<DataRecord> dataRecords;
 
     public VariableDataStructure(byte[] buffer, int offset, int length, SecondaryAddress linkLayerSecondaryAddress,
-            Map<SecondaryAddress, byte[]> keyMap) {
+            IDecodingKeyProvider keyProvider) {
         this.buffer = buffer;
         this.offset = offset;
         this.length = length;
         this.linkLayerSecondaryAddress = linkLayerSecondaryAddress;
-        this.keyMap = keyMap;
+        this.keyProvider = keyProvider;
         this.dataRecords = new LinkedList<>();
     }
 
     /**
-     * This method is used to
+     * Decode encrypted part of the data structure.
      * 
-     * @throws DecodingException
+     * @throws DecodingException when decoding will be not successful
      */
     public void decode() throws DecodingException {
         if (!decoded) {
@@ -135,7 +137,7 @@ public class VariableDataStructure {
         vdr = new byte[encryptedDataLength];
         System.arraycopy(buffer, offset, vdr, 0, encryptedDataLength);
 
-        byte[] key = keyMap.get(linkLayerSecondaryAddress);
+        byte[] key = keyProvider.get(linkLayerSecondaryAddress);
         if (key == null) {
             String msg = MessageFormat.format(
                     "Unable to decode encrypted payload. \nSecondary address key was not registered: \n{0}",
@@ -402,7 +404,7 @@ public class VariableDataStructure {
     }
 
     private byte[] getKey() throws DecodingException {
-        byte[] key = keyMap.get(linkLayerSecondaryAddress);
+        byte[] key = keyProvider.get(linkLayerSecondaryAddress);
         if (key != null) {
             return key;
         }

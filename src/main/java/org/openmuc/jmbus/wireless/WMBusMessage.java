@@ -5,12 +5,12 @@
  */
 package org.openmuc.jmbus.wireless;
 
-import java.text.MessageFormat;
-import java.util.Map;
-
 import org.openmuc.jmbus.DecodingException;
 import org.openmuc.jmbus.SecondaryAddress;
 import org.openmuc.jmbus.VariableDataStructure;
+import org.openmuc.jmbus.key.IDecodingKeyProvider;
+
+import java.text.MessageFormat;
 
 /**
  * Represents a wireless M-Bus link layer message without the CRC checksum.
@@ -56,7 +56,7 @@ public class WMBusMessage {
     /*
      * Only decodes the wireless M-Bus message itself.
      */
-    static WMBusMessage decode(byte[] buffer, Integer signalStrengthInDBm, Map<SecondaryAddress, byte[]> keyMap)
+    static WMBusMessage decode(byte[] buffer, Integer signalStrengthInDBm, IDecodingKeyProvider keyProvider)
             throws DecodingException {
         int length = buffer[0] & 0xff;
 
@@ -69,7 +69,7 @@ public class WMBusMessage {
 
         int controlField = buffer[1] & 0xff;
         SecondaryAddress secondaryAddress = SecondaryAddress.newFromWMBusLlHeader(buffer, 2);
-        VariableDataStructure vdr = new VariableDataStructure(buffer, 10, length - 9, secondaryAddress, keyMap);
+        VariableDataStructure vdr = new VariableDataStructure(buffer, 10, length - 9, secondaryAddress, keyProvider);
 
         return new WMBusMessage(signalStrengthInDBm, buffer, controlField, secondaryAddress, vdr);
     }
